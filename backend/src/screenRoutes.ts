@@ -62,38 +62,41 @@ function getFallbackPrice(symbol: string): { price: number; chg: number } {
   return MOCK_PRICES[clean] || { price: 1000.0, chg: 0.0 };
 }
 
-// Fetch current stock prices from Yahoo Finance
+// Fetch current stock prices from Yahoo Finance via the working /v8/finance/chart endpoint
 async function fetchPrices(symbols: string[]): Promise<Record<string, { price: number; chg: number }>> {
   if (symbols.length === 0) return {};
-  try {
-    const yfSymbols = symbols.map(mapSymbolToYFinance);
-    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yfSymbols.join(',')}`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-    if (!res.ok) throw new Error(`Yahoo Finance failed: HTTP ${res.status}`);
-    const data = (await res.json()) as any;
-    const quotes = data.quoteResponse?.result || [];
-    
-    const results: Record<string, { price: number; chg: number }> = {};
-    for (const sym of symbols) {
-      const q = quotes.find((x: any) => x.symbol === mapSymbolToYFinance(sym));
-      if (q && q.regularMarketPrice) {
-        results[sym] = {
-          price: parseFloat((q.regularMarketPrice || 0.0).toFixed(2)),
-          chg: parseFloat((q.regularMarketChangePercent || 0.0).toFixed(2))
-        };
-      } else {
+  const results: Record<string, { price: number; chg: number }> = {};
+  
+  await Promise.all(
+    symbols.map(async (sym) => {
+      try {
+        const yfSymbol = mapSymbolToYFinance(sym);
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yfSymbol}?interval=1m&range=1d`;
+        const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        if (!res.ok) {
+          results[sym] = getFallbackPrice(sym);
+          return;
+        }
+        const data = (await res.json()) as any;
+        const meta = data.chart?.result?.[0]?.meta;
+        if (meta && meta.regularMarketPrice) {
+          const currentPrice = meta.regularMarketPrice;
+          const prevClose = meta.chartPreviousClose || currentPrice;
+          const chg = prevClose !== 0 ? ((currentPrice - prevClose) / prevClose) * 100 : 0.0;
+          results[sym] = {
+            price: parseFloat(currentPrice.toFixed(2)),
+            chg: parseFloat(chg.toFixed(2))
+          };
+        } else {
+          results[sym] = getFallbackPrice(sym);
+        }
+      } catch (err) {
         results[sym] = getFallbackPrice(sym);
       }
-    }
-    return results;
-  } catch (err) {
-    console.error('Error fetching prices from Yahoo Finance, using fallback prices:', err);
-    const results: Record<string, { price: number; chg: number }> = {};
-    for (const sym of symbols) {
-      results[sym] = getFallbackPrice(sym);
-    }
-    return results;
-  }
+    })
+  );
+  
+  return results;
 }
 
 // ── 1. HOME SCREEN ───────────────────────────────────────────────────────────
