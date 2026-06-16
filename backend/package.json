@@ -8,7 +8,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "db:seed": "tsx -e \"import { runFullSeed } from './src/services/seeder.js'; runFullSeed().then(() => process.exit(0)).catch(err => { console.error(err); process.exit(1); })\""
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",
