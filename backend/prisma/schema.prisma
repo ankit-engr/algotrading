@@ -1,0 +1,177 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider             = "prisma-client-js"
+}
+
+model Candle {
+  id         Int      @id @default(autoincrement())
+  timestamp  DateTime @db.DateTime(0)
+  timeframe  String   @db.VarChar(10)
+  open       Float
+  high       Float
+  low        Float
+  close      Float
+  volume     BigInt
+  vwap       Float?
+  created_at DateTime @default(now()) @db.DateTime(0)
+
+  @@index([timestamp])
+  @@map("candles")
+}
+
+model Signal {
+  id                 Int      @id @default(autoincrement())
+  timestamp          DateTime @db.DateTime(0)
+  bank_nifty_price   Float
+  trend              String   @db.VarChar(20)
+  signal             String   @db.VarChar(20)
+  confidence         Float
+  risk_level         String   @db.VarChar(20)
+  stop_loss          Float?
+  target_1           Float?
+  target_2           Float?
+  target_3           Float?
+  up_probability     Float?
+  down_probability   Float?
+  expected_range     Float?
+  trend_score        Float?
+  volume_score       Float?
+  oi_score           Float?
+  option_chain_score Float?
+  momentum_score     Float?
+  pcr_score          Float?
+  vix                Float?
+  pcr                Float?
+  created_at         DateTime @default(now()) @db.DateTime(0)
+  alerts             Alert[]
+
+  @@index([timestamp])
+  @@map("signals")
+}
+
+model Alert {
+  id         Int      @id @default(autoincrement())
+  signal_id  Int?
+  alert_type String   @db.VarChar(50)
+  message    String   @db.Text
+  is_sent    Boolean  @default(false)
+  timestamp  DateTime @db.DateTime(0)
+  created_at DateTime @default(now()) @db.DateTime(0)
+  signal     Signal?  @relation(fields: [signal_id], references: [id])
+
+  @@index([timestamp])
+  @@map("alerts")
+}
+
+model CarryForward {
+  id               Int      @id @default(autoincrement())
+  date             String   @db.VarChar(10)
+  carry_signal     String   @db.VarChar(50)
+  bank_nifty_price Float
+  trend            String   @db.VarChar(20)
+  confidence       Float
+  stop_loss        Float?
+  target_1         Float?
+  target_2         Float?
+  reasoning        String?  @db.Text
+  created_at       DateTime @default(now()) @db.DateTime(0)
+
+  @@index([date])
+  @@map("carry_forward")
+}
+
+model OptionChainSnapshot {
+  id              Int      @id @default(autoincrement())
+  timestamp       DateTime @db.DateTime(0)
+  expiry_date     String   @db.VarChar(10)
+  total_call_oi   Float
+  total_put_oi    Float
+  pcr             Float
+  vix             Float?
+  max_pain_strike Float?
+  atm_call_oi     Float?
+  atm_put_oi      Float?
+  atm_call_iv     Float?
+  atm_put_iv      Float?
+  created_at      DateTime @default(now()) @db.DateTime(0)
+
+  @@index([timestamp])
+  @@map("option_chain")
+}
+
+// ─── Stock Universe (50+ Companies via Finnhub) ────────────────────────────
+
+model Company {
+  id            Int             @id @default(autoincrement())
+  symbol        String          @unique @db.VarChar(20)
+  name          String          @db.VarChar(200)
+  sector        String?         @db.VarChar(100)
+  industry      String?         @db.VarChar(100)
+  market_cap    Float?
+  exchange      String?         @db.VarChar(20)
+  country       String?         @db.VarChar(10)
+  currency      String?         @db.VarChar(10)
+  is_active     Boolean         @default(true)
+  created_at    DateTime        @default(now()) @db.DateTime(0)
+  updated_at    DateTime        @updatedAt @db.DateTime(0)
+  stock_candles StockCandle[]
+  analyses      StockAnalysis[]
+
+  @@index([symbol])
+  @@map("companies")
+}
+
+model StockCandle {
+  id         Int      @id @default(autoincrement())
+  company_id Int
+  symbol     String   @db.VarChar(20)
+  date       String   @db.VarChar(10)
+  open       Float
+  high       Float
+  low        Float
+  close      Float
+  volume     BigInt
+  created_at DateTime @default(now()) @db.DateTime(0)
+  company    Company  @relation(fields: [company_id], references: [id])
+
+  @@unique([symbol, date])
+  @@index([symbol])
+  @@index([date])
+  @@map("stock_candles")
+}
+
+model StockAnalysis {
+  id               Int      @id @default(autoincrement())
+  company_id       Int
+  symbol           String   @db.VarChar(20)
+  is_profitable    Boolean
+  total_trades     Int
+  winning_trades   Int
+  losing_trades    Int
+  win_rate         Float
+  avg_profit_pct   Float
+  avg_loss_pct     Float
+  total_return_pct Float
+  max_drawdown_pct Float
+  sharpe_ratio     Float?
+  current_signal   String   @db.VarChar(20)
+  entry_price      Float?
+  stop_loss        Float?
+  target_1         Float?
+  target_2         Float?
+  rsi              Float?
+  macd             Float?
+  ema9             Float?
+  ema21            Float?
+  recommendation   String   @db.Text
+  analysed_at      DateTime @default(now()) @db.DateTime(0)
+  company          Company  @relation(fields: [company_id], references: [id])
+
+  @@index([symbol])
+  @@index([analysed_at])
+  @@map("stock_analyses")
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Grid Scalper v2.1",
+    "symbol": "HDFCBANK",
+    "type": "GRID",
+    "status": "RUNNING",
+    "pnl": 4519.57
+  },
+  {
+    "name": "EMA Crossover",
+    "symbol": "SBIN",
+    "type": "MOMENTUM",
+    "status": "RUNNING",
+    "pnl": -1251.07
+  },
+  {
+    "name": "Volume Breakout",
+    "symbol": "ICICIBANK",
+    "type": "BREAKOUT",
+    "status": "PAUSED",
+    "pnl": 8900
+  },
+  {
+    "name": "Mean Reversion",
+    "symbol": "AXISBANK",
+    "type": "REVERSION",
+    "status": "IDLE",
+    "pnl": 0
+  }
+]

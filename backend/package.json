@@ -1,0 +1,32 @@
+{
+  "name": "stock-backend-node",
+  "version": "1.0.0",
+  "description": "Node.js Rewrite of Bank Nifty Stock Screener and Signal Engine",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "prisma:generate": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-cron": "^3.0.3",
+    "ws": "^8.17.0",
+    "yahoo-finance2": "^2.11.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.12",
+    "@types/node-cron": "^3.0.11",
+    "@types/ws": "^8.5.10",
+    "prisma": "^5.14.0",
+    "tsx": "^4.10.3",
+    "typescript": "^5.4.5"
+  }
+}
