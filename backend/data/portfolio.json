@@ -1,58 +1,18 @@
 {
-  "buyingPower": 1245000,
-  "marginUsed": 420000,
-  "diversification": 82,
-  "riskScore": "Moderate",
+  "buyingPower": 1195002,
+  "marginUsed": 0,
+  "diversification": 0,
+  "riskScore": "None",
   "holdings": [
-    {
-      "id": "hdfcbank",
-      "symbol": "HDFCBANK",
-      "name": "HDFC Bank Ltd.",
-      "abbr": "HB",
-      "quantity": 120,
-      "avgBuyPrice": 1580,
-      "risk": "LOW",
-      "sector": "Private Bank"
-    },
     {
       "id": "icicibank",
       "symbol": "ICICIBANK",
-      "name": "ICICI Bank Ltd.",
-      "abbr": "IB",
-      "quantity": 200,
-      "avgBuyPrice": 998,
-      "risk": "LOW",
-      "sector": "Private Bank"
-    },
-    {
-      "id": "sbin",
-      "symbol": "SBIN",
-      "name": "State Bank of India",
-      "abbr": "SB",
-      "quantity": 300,
-      "avgBuyPrice": 795,
+      "name": "ICICIBANK Ltd.",
+      "abbr": "IC",
+      "quantity": 50,
+      "avgBuyPrice": 999.96,
       "risk": "MEDIUM",
-      "sector": "PSU Bank"
-    },
-    {
-      "id": "axisbank",
-      "symbol": "AXISBANK",
-      "name": "Axis Bank Ltd.",
-      "abbr": "AB",
-      "quantity": 150,
-      "avgBuyPrice": 1035,
-      "risk": "MEDIUM",
-      "sector": "Private Bank"
-    },
-    {
-      "id": "kotakbank",
-      "symbol": "KOTAKBANK",
-      "name": "Kotak Mahindra Bank",
-      "abbr": "KM",
-      "quantity": 80,
-      "avgBuyPrice": 1810,
-      "risk": "MEDIUM",
-      "sector": "Private Bank"
+      "sector": "Banking"
     }
   ]
 }

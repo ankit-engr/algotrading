@@ -18,61 +18,10 @@ if (!fs.existsSync(DATA_DIR)) {
 // Initial Mock Data
 const INITIAL_PORTFOLIO = {
   buyingPower: 1245000.0,
-  marginUsed: 420000.0,
-  diversification: 82,
-  riskScore: 'Moderate',
-  holdings: [
-    {
-      id: 'hdfcbank',
-      symbol: 'HDFCBANK',
-      name: 'HDFC Bank Ltd.',
-      abbr: 'HB',
-      quantity: 120,
-      avgBuyPrice: 1580.00,
-      risk: 'LOW',
-      sector: 'Private Bank'
-    },
-    {
-      id: 'icicibank',
-      symbol: 'ICICIBANK',
-      name: 'ICICI Bank Ltd.',
-      abbr: 'IB',
-      quantity: 200,
-      avgBuyPrice: 998.00,
-      risk: 'LOW',
-      sector: 'Private Bank'
-    },
-    {
-      id: 'sbin',
-      symbol: 'SBIN',
-      name: 'State Bank of India',
-      abbr: 'SB',
-      quantity: 300,
-      avgBuyPrice: 795.00,
-      risk: 'MEDIUM',
-      sector: 'PSU Bank'
-    },
-    {
-      id: 'axisbank',
-      symbol: 'AXISBANK',
-      name: 'Axis Bank Ltd.',
-      abbr: 'AB',
-      quantity: 150,
-      avgBuyPrice: 1035.00,
-      risk: 'MEDIUM',
-      sector: 'Private Bank'
-    },
-    {
-      id: 'kotakbank',
-      symbol: 'KOTAKBANK',
-      name: 'Kotak Mahindra Bank',
-      abbr: 'KM',
-      quantity: 80,
-      avgBuyPrice: 1810.00,
-      risk: 'MEDIUM',
-      sector: 'Private Bank'
-    }
-  ]
+  marginUsed: 0.0,
+  diversification: 0,
+  riskScore: 'None',
+  holdings: []
 };
 
 const INITIAL_BOTS: Bot[] = [

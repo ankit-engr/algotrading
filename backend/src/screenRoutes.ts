@@ -123,8 +123,8 @@ screenRouter.get('/home', async (req: Request, res: Response) => {
 
     let totalCost = 0;
     let totalValue = 0;
-    let bestPerf = { name: 'HDFC Bank', symbol: 'HDFCBANK', changePct: 2.87 };
-    let worstPerf = { name: 'SBI', symbol: 'SBIN', changePct: -1.19 };
+    let bestPerf = { name: 'None', symbol: '', changePct: 0.0 };
+    let worstPerf = { name: 'None', symbol: '', changePct: 0.0 };
     let maxChange = -Infinity;
     let minChange = Infinity;
 
@@ -341,8 +341,8 @@ screenRouter.get('/portfolio', async (req: Request, res: Response) => {
 
     let totalCost = 0;
     let totalValue = 0;
-    let bestPerf = { name: 'HDFC Bank', symbol: 'HDFCBANK', changePct: 2.87 };
-    let worstPerf = { name: 'SBI', symbol: 'SBIN', changePct: -1.19 };
+    let bestPerf = { name: 'None', symbol: '', changePct: 0.0 };
+    let worstPerf = { name: 'None', symbol: '', changePct: 0.0 };
     let maxChange = -Infinity;
     let minChange = Infinity;
 
@@ -392,10 +392,7 @@ screenRouter.get('/portfolio', async (req: Request, res: Response) => {
       percentage: parseFloat(sectorWeights[sector].toFixed(1))
     }));
 
-    // If no mix, add mock default
-    if (mix.length === 0) {
-      mix.push({ name: 'Private Bank', percentage: 75 }, { name: 'PSU Bank', percentage: 25 });
-    }
+
 
     // Enrich holdings with bar widths for UI chart displays (percent of portfolio)
     const finalHoldings = enrichedHoldings.map(h => ({
@@ -432,9 +429,12 @@ screenRouter.get('/portfolio', async (req: Request, res: Response) => {
       },
       holdings: finalHoldings,
       mix,
-      risk_analysis: {
+      risk_analysis: portfolio.holdings.length > 0 ? {
         rating: 'MODERATE',
         description: `Your portfolio has a high concentration (${mix.find(m => m.name === 'Private Bank')?.percentage || 75}%+) in Financials. Consider adding Nifty IT or Pharma to hedge against sector-specific banking volatility.`
+      } : {
+        rating: 'NONE',
+        description: 'You do not have any active holdings. Start investing by selecting a stock from the Markets tab.'
       },
       news
     });
@@ -635,6 +635,17 @@ screenRouter.get('/stock/:id', async (req: Request, res: Response) => {
     // Get current holding details from portfolio
     const portfolio = getPortfolio();
     const holding = portfolio.holdings.find(h => h.symbol.toUpperCase() === rawSymbol);
+    const holdingDetails = holding ? {
+      shares: holding.quantity,
+      avg_buy_price: holding.avgBuyPrice,
+      current_value: parseFloat((holding.quantity * live.price).toFixed(2)),
+      pnl: parseFloat(((live.price - holding.avgBuyPrice) * holding.quantity).toFixed(2)),
+      pnl_pct: parseFloat((((live.price - holding.avgBuyPrice) / holding.avgBuyPrice) * 100).toFixed(2)),
+      cash_available: portfolio.buyingPower
+    } : {
+      shares: 0,
+      cash_available: portfolio.buyingPower
+    };
 
     // Dynamic Live Trade book entries around the current price
     const liveTrades = Array.from({ length: 6 }).map((_, idx) => {
@@ -650,7 +661,59 @@ screenRouter.get('/stock/:id', async (req: Request, res: Response) => {
       };
     });
 
+    const timeframe = (req.query.timeframe as string || '1D').toUpperCase();
+    let recentCandles = [];
+    try {
+      let interval = '1d';
+      let daysBack = 45;
+
+      if (timeframe === '1H') {
+        interval = '1h';
+        daysBack = 7;
+      } else if (timeframe === '1D') {
+        interval = '1d';
+        daysBack = 30;
+      } else if (timeframe === '1W') {
+        interval = '1d';
+        daysBack = 90;
+      } else if (timeframe === '1M') {
+        interval = '1wk';
+        daysBack = 180;
+      } else if (timeframe === 'ALL') {
+        interval = '1mo';
+        daysBack = 365;
+      }
+
+      const end = new Date();
+      const start = new Date(end.getTime() - daysBack * 24 * 60 * 60 * 1000);
+      const candles = await fetchStockCandles(rawSymbol, start, end, interval);
+      recentCandles = candles.slice(-25);
+    } catch (err) {
+      console.warn(`[StockDetailRoute] Error fetching candles for ${rawSymbol} (${timeframe}):`, err);
+    }
+
+    if (recentCandles.length === 0) {
+      let currentVal = live.price * 0.95;
+      for (let i = 0; i < 25; i++) {
+        const change = (Math.random() - 0.45) * (live.price * 0.015);
+        const open = currentVal;
+        const close = currentVal + change;
+        const high = Math.max(open, close) + (Math.random() * (live.price * 0.005));
+        const low = Math.min(open, close) - (Math.random() * (live.price * 0.005));
+        recentCandles.push({
+          date: new Date(Date.now() - (25 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          open: parseFloat(open.toFixed(2)),
+          high: parseFloat(high.toFixed(2)),
+          low: parseFloat(low.toFixed(2)),
+          close: parseFloat(close.toFixed(2)),
+          volume: Math.floor(Math.random() * 50000) + 10000
+        });
+        currentVal = close;
+      }
+    }
+
     res.json({
+      candles: recentCandles,
       profile: {
         id: rawSymbol.toLowerCase(),
         symbol: `${rawSymbol}.NSE`,
@@ -675,11 +738,12 @@ screenRouter.get('/stock/:id', async (req: Request, res: Response) => {
         recommendation: analysis?.recommendation || 'ACUMULATE positions at dips.'
       },
       trade_plan: plan,
-      holding: {
-        shares: holding ? holding.quantity : 0,
-        cash_available: portfolio.buyingPower
-      },
-      live_trades: liveTrades
+      holding: holdingDetails,
+      live_trades: liveTrades,
+      metrics: {
+        win_rate: winRate,
+        total_return_pct: totalReturn
+      }
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

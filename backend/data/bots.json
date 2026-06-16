@@ -4,14 +4,14 @@
     "symbol": "HDFCBANK",
     "type": "GRID",
     "status": "RUNNING",
-    "pnl": 4519.57
+    "pnl": 4548.48
   },
   {
     "name": "EMA Crossover",
     "symbol": "SBIN",
     "type": "MOMENTUM",
     "status": "RUNNING",
-    "pnl": -1251.07
+    "pnl": -1231.59
   },
   {
     "name": "Volume Breakout",
